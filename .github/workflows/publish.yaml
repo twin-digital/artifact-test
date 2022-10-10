@@ -5,10 +5,6 @@ on:
 
 name: Publish
 
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
   publish:
     name: Create release
@@ -16,6 +12,9 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v2
+
+    - name: Build
+      run: mkdir -p dist && tar --exclude dist --exclude .git -czvf dist/artifact-test.tar.gz .
 
     - id: version
       name: version
@@ -32,3 +31,13 @@ jobs:
         body_path: CHANGELOG.md
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: upload artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/artifact-test.tar.gz
+        asset_name: artifact-test.tar.gz
+        asset_content_type: application/gzip
